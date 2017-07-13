@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">Raveri</string>
-    <string name="add">Add</string>
-    <string name="mission">Mission</string>
-    <string name="sub">Subtract</string>
+    <string name="addActivity">ADD ACTIVITY</string>
 </resources>
