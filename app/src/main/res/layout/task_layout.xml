@@ -22,7 +22,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/activity_input_field"
-        android:text="@string/addActivity" />
+        android:background="@color/colorPrimary"
+        android:text="@string/addActivity"
+        android:textColor="@android:color/holo_blue_bright"
+        android:textStyle="bold" />
 
     <ListView
         android:id="@+id/task_list"

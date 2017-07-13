@@ -1,6 +1,8 @@
 package de.technopaki.aleks.raveri;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.util.Xml;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,16 +12,35 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xmlpull.v1.XmlSerializer;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
+import java.text.ParseException;
 import java.util.ArrayList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 /**
  * Created by aleks on 11.07.17.
@@ -46,12 +67,14 @@ public class TaskActivity extends android.support.v4.app.Fragment {
         adapter.notifyDataSetChanged();
         task_list.setAdapter(adapter);
 
+        readFromXmlFile();
+
         // Set onClick for the add_button
         add_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(isInputValid()) {
-                    writeIntoXMLFile();
+                    writeToXMLFile();
                     tasks.add(input_text_view.getText().toString());
                 }
             }
@@ -66,62 +89,112 @@ public class TaskActivity extends android.support.v4.app.Fragment {
         return !input_text.isEmpty() && !input_text.matches(" ");
     }
 
-    public void writeIntoXMLFile() {
+    public void writeToXMLFile() {
 
         try {
-            XmlSerializer xmlSerializer = Xml.newSerializer();
-            StringWriter writer = new StringWriter();
+            Document xmlDoc = getDocument();
 
-            // Set output writer
-            xmlSerializer.setOutput(writer);
+            if (xmlDoc == null)
+                return;
 
-            // Start Document
-            xmlSerializer.startDocument("UTF-8", true);
+            Element tasks = xmlDoc.getDocumentElement();
+            Element newTask = xmlDoc.createElement("Task");
 
-            // Open tag task
-            xmlSerializer.startTag("", "task");
+            /*********************** Child nodes *********************************/
+            Element newName = xmlDoc.createElement("Name");
+            Element newPryority = xmlDoc.createElement("Pryority");
+            Element newDateTo = xmlDoc.createElement("Date_to");
 
-            /****************** Task name ********************************/
-            xmlSerializer.startTag("", "name");
-            xmlSerializer.text(input_text_view.getText().toString());
-            xmlSerializer.endTag("", "name");
-            /*************************************************************/
+            newName.appendChild(xmlDoc.createTextNode(input_text_view.getText().toString()));
+            newPryority.appendChild(xmlDoc.createTextNode("high"));
+            newDateTo.appendChild(xmlDoc.createTextNode("2015-12-16"));
+            /***********************************************************************/
 
-            /***************** Pryority Tag *****************************/
-            xmlSerializer.startTag("", "pryority");
-            xmlSerializer.text("high");
-            xmlSerializer.endTag("", "pryority");
-            /***************************************************/
+            newTask.appendChild(newName);
+            newTask.appendChild(newPryority);
+            newTask.appendChild(newDateTo);
 
-            /******************** Date to ***********************/
-            xmlSerializer.startTag("", "date_to");
-            xmlSerializer.text("2015-12-19");
-            xmlSerializer.endTag("", "date_to");
-            /****************************************************/
+            tasks.appendChild(newTask);
 
-            xmlSerializer.endTag("", "task");
-            xmlSerializer.endDocument();
+            DOMSource source = new DOMSource(xmlDoc);
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            StreamResult result = new StreamResult(getContext().openFileOutput("saved_tasks.xml", Context.MODE_PRIVATE));
+            transformer.transform(source, result);
+        }
 
-            // After adding creatig a node
-            File file = new File(getContext().getFilesDir() + File.separator + "saved_tasks.xml");
+        catch (TransformerConfigurationException ex) {
+            input_text_view.setText(ex.getMessage());
+        }
 
-            if(file.exists()) {
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
+        catch(TransformerException ex) {
+            input_text_view.setText(ex.getMessage());
+        }
 
-                fileOutputStream.write(writer.toString().getBytes());
+        catch (FileNotFoundException ex) {
+            input_text_view.setText(ex.getMessage());
+        }
 
-                fileOutputStream.close();
-                input_text_view.setText("Success");
+    }
+
+    private Document getDocument() {
+        Document document = null;
+
+        try {
+
+            FileInputStream fInput = getContext().openFileInput("saved_tasks.xml");
+
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
+
+            document = documentBuilder.parse(fInput);
+        }
+
+
+        catch(ParserConfigurationException ex) {
+            input_text_view.setText(ex.getMessage());
+        }
+
+        catch(SAXException ex) {
+            input_text_view.setText(ex.getMessage());
+        }
+
+        catch(IOException ex) {
+            input_text_view.setText(ex.getMessage());
+        }
+
+        return document;
+
+    }
+
+    public void readFromXmlFile() {
+        tasks.clear();
+
+        try {
+            Document doc = getDocument();
+
+            if(doc == null) {
+                input_text_view.setText("Document null");
+                return;
+            }
+
+            Element element = doc.getDocumentElement();
+            element.normalize();
+
+            NodeList nList = doc.getChildNodes();
+
+            for (int task = 0; task < nList.getLength(); task++) {
+                Node node = nList.item(task);
+                tasks.add(node.getChildNodes().item(0).getTextContent());
             }
 
         }
 
-        catch(FileNotFoundException ex) {
-            ex.printStackTrace();
+        catch (Exception ex)
+        {
+            input_text_view.setText(ex.getMessage());
         }
 
-        catch(IOException ex) {
-            ex.printStackTrace();
-        }
+
     }
 }
