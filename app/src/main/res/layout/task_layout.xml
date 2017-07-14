@@ -23,8 +23,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/activity_input_field"
         android:background="@color/colorPrimary"
-        android:text="@string/addActivity"
-        android:textColor="@android:color/holo_blue_bright"
+        android:text="@string/addTask"
+        android:textColor="@android:color/background_light"
         android:textStyle="bold" />
 
     <ListView
