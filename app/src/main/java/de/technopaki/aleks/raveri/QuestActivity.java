@@ -1,6 +1,8 @@
 package de.technopaki.aleks.raveri;
 
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -11,22 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Created by aleks on 11.07.17.
@@ -39,6 +26,7 @@ public class QuestActivity extends android.support.v4.app.Fragment {
     ArrayAdapter<String> tasks;
     TextView level;
     SwipeRefreshLayout refreshLayout;
+    SQLiteDatabase task_database;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,15 +36,14 @@ public class QuestActivity extends android.support.v4.app.Fragment {
         level = (TextView) view.findViewById(R.id.level);
         refreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_layout);
 
-        tasks = new ArrayAdapter<String>(view.getContext(), R.layout.task_item);
-        tasks.notifyDataSetChanged();
+        tasks = new ArrayAdapter<String>(view.getContext(), R.layout.quest_item);
         task_list.setAdapter(tasks);
 
+        readFromDatabase();
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 refreshLayout.setRefreshing(true);
-                readFromXmlFile();
                 (new Handler()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -69,64 +56,22 @@ public class QuestActivity extends android.support.v4.app.Fragment {
         return view;
     }
 
-    public void readFromXmlFile() {
-        tasks.clear();
+    void readFromDatabase() {
+        final TasksDatabase database = new TasksDatabase(this.getContext());
+        task_database = database.getWritableDatabase();
+        Cursor cursor = task_database.rawQuery("SELECT name FROM tasks", null);
 
-        try {
-            Document doc = getDocument();
-
-            if(doc == null) {
-                level.setText("Document null");
-                return;
+        if(cursor != null) {
+            if(cursor.moveToFirst()) {
+                do {
+                    String name = cursor.getString(cursor.getColumnIndex("name"));
+                    tasks.add(name);
+                    tasks.notifyDataSetChanged();
+                } while(cursor.moveToNext());
             }
-
-            Element element = doc.getDocumentElement();
-            element.normalize();
-
-            NodeList nList = doc.getChildNodes();
-
-            for (int task = 0; task < nList.getLength(); task++) {
-                Node node = nList.item(task);
-                tasks.add(node.getChildNodes().item(0).getTextContent());
-            }
-
         }
 
-        catch (Exception ex)
-        {
-            level.setText(ex.getMessage());
-        }
-
-
+        task_database.close();
     }
 
-    private Document getDocument() {
-        Document document = null;
-
-        try {
-
-            FileInputStream fInput = getContext().openFileInput("saved_tasks.xml");
-
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
-
-            document = documentBuilder.parse(fInput);
-        }
-
-
-        catch(ParserConfigurationException ex) {
-            level.setText(ex.getMessage());
-        }
-
-        catch(SAXException ex) {
-            level.setText(ex.getMessage());
-        }
-
-        catch(IOException ex) {
-            level.setText(ex.getMessage());
-        }
-
-        return document;
-
-    }
 }
