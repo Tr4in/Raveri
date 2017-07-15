@@ -2,6 +2,7 @@ package de.technopaki.aleks.raveri;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.provider.DocumentsContract;
@@ -64,7 +65,6 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Cus
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.task_layout, container, false);
-        input_text_view = (EditText) view.findViewById(R.id.activity_input_field);
         task_list = (ListView) view.findViewById(R.id.task_list);
         add_button = (Button) view.findViewById(R.id.addButton);
         task_names = new ArrayList<>();
@@ -81,10 +81,11 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Cus
             @Override
             public void onClick(View view) {
                 Task task = new Task();
-                task.name = input_text_view.getText().toString();
+                task.name = "Hallo";
                 task.priority = "high";
                 task.date_to = "2015-05-26";
                 database.addNewTask(task);
+                readFromDatabase();
             }
         });
 
@@ -92,16 +93,27 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Cus
     }
 
     @Override
-    public void onButtonClickListener(int position, String value) {
-        Toast.makeText(this.getContext(), "Button click " + value,
-                Toast.LENGTH_SHORT).show();
+    public void onButtonClickListener(int position, String value, View view) {
+        final TasksDatabase database = new TasksDatabase(this.getContext());
 
+        try {
+            task_database = database.getWritableDatabase();
+            task_database.execSQL("DELETE FROM tasks WHERE name='" + value + "'");
+            tasks.remove(value);
+            tasks.notifyDataSetChanged();
+
+            task_database.close();
+        }
+        catch(SQLException ex) {
+            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     void readFromDatabase() {
         final TasksDatabase database = new TasksDatabase(this.getContext());
         task_database = database.getWritableDatabase();
         Cursor cursor = task_database.rawQuery("SELECT name FROM tasks", null);
+        task_names.clear();
 
         if(cursor != null) {
             if(cursor.moveToFirst()) {

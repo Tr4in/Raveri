@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Raveri</string>
-        <string name="addTask">ADD TASK</string>
-        <string name="deleteTask">DELETE</string>
+    <string name="addTask">ADD NEW TASK</string>
+    <string name="editTask">&#x2791;</string>
+    <string name="deleteTask">&#x2716;</string>
+    <string name="questAccept">&#x2714;</string>
+    <string name="questAbort">&#x2716;</string>
 </resources>
