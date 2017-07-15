@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class TaskListAdapter extends ArrayAdapter<String> {
     Context context;
     ArrayList<String> items;
-    CustomButtonListener customListner;
+    TaskButtonListener customListner;
 
     class ViewHolder {
         TextView text;
@@ -34,14 +34,14 @@ public class TaskListAdapter extends ArrayAdapter<String> {
     }
 
 
-    public void setCustomButtonListner(CustomButtonListener listener) {
+    public void setCustomButtonListner(TaskButtonListener listener) {
         this.customListner = listener;
     }
 
     @NonNull
     @Override
     public View getView(final int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        ViewHolder viewHolder;
+        final ViewHolder viewHolder;
         if (convertView == null) {
             LayoutInflater inflater = LayoutInflater.from(context);
             convertView = inflater.inflate(R.layout.task_item, null);
@@ -59,7 +59,7 @@ public class TaskListAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View view) {
                 if (customListner != null) {
-                    customListner.onButtonClickListener(position,name_of_task, view);
+                    //customListner.onButtonClickListener(position,name_of_task, viewHolder.);
                 }
 
             }

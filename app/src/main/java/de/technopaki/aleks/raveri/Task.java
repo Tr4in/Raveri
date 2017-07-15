@@ -7,11 +7,14 @@ import java.util.Date;
  */
 
 public class Task {
-    public String name;
-    public String priority;
-    public String date_to;
+    String name;
+    String priority;
+    String date_to;
 
-    public Boolean checkIfTaskIsValid() {
-        return true;
+    public Task(String name, String priority, String date_to) {
+        this.name = name;
+        this.priority = priority;
+        this.date_to = date_to;
     }
+
 }

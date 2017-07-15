@@ -28,24 +28,27 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Cu
     ListView task_list;
     ProgressBar levelProgress;
     QuestListAdapter questAdapter;
-    TextView level;
+    TextView level_textview;
     SwipeRefreshLayout refreshLayout;
     SQLiteDatabase task_database;
     ArrayList<String> questList;
+    int level = 1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.quests_layout, container, false);
         task_list = (ListView) view.findViewById(R.id.task_list);
-        level = (TextView) view.findViewById(R.id.level);
+        level_textview = (TextView) view.findViewById(R.id.level_textview);
         refreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_layout);
         levelProgress = (ProgressBar) view.findViewById(R.id.progressBar);
         questList = new ArrayList<>();
 
+
         questAdapter = new QuestListAdapter(view.getContext(), questList);
         task_list.setAdapter(questAdapter);
         questAdapter.setCustomButtonListner(this);
+        level_textview.setText("Level " + level);
 
         readFromDatabase();
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -66,8 +69,8 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Cu
     }
 
     @Override
-    public void onButtonClickListener(int position, String value, View view) {
-        Toast.makeText(getContext(), value, Toast.LENGTH_LONG).show();
+    public void onButtonClickListener(int position, String value, TextView view) {
+        Toast.makeText(getContext(),view.getText().toString(), Toast.LENGTH_LONG).show();
     }
 
     void readFromDatabase() {

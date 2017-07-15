@@ -30,7 +30,6 @@ public class QuestListAdapter extends ArrayAdapter<String> {
         Button abort;
     }
 
-
     public QuestListAdapter(Context context, ArrayList<String> items) {
         super(context, R.layout.task_item, items);
         this.context = context;
@@ -65,12 +64,14 @@ public class QuestListAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View view) {
                 if (customListner != null) {
-                    customListner.onButtonClickListener(position,name_of_task, view);
+                    customListner.onButtonClickListener(position,name_of_task, viewHolder.time);
 
-                    new CountDownTimer(30000, 1000) {
+                    new CountDownTimer(86400000, 1000) {
                         @Override
                         public void onTick(long l) {
-                            viewHolder.time.setText("" + l);
+                            int hours = (int)((l/3600) * 0.001);
+                            int minutes = (int)(((l / 24) / 60) / 1000);
+                            viewHolder.time.setText(hours + ":" + minutes);
                         }
 
                         @Override
@@ -87,7 +88,7 @@ public class QuestListAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View view) {
                 if (customListner != null) {
-                    customListner.onButtonClickListener(position,name_of_task, view);
+                    customListner.onButtonClickListener(position,name_of_task, viewHolder.time);
                     viewHolder.time.setText("0");
                 }
             }

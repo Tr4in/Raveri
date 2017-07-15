@@ -1,6 +1,8 @@
 package de.technopaki.aleks.raveri;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -15,6 +17,9 @@ import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.w3c.dom.Document;
@@ -52,9 +57,8 @@ import javax.xml.transform.stream.StreamResult;
  * Created by aleks on 11.07.17.
  */
 
-public class TaskActivity extends android.support.v4.app.Fragment implements CustomButtonListener {
+public class TaskActivity extends android.support.v4.app.Fragment implements TaskButtonListener {
 
-    EditText input_text_view;
     ListView task_list;
     Button add_button;
     SQLiteDatabase task_database;
@@ -62,7 +66,7 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Cus
     ArrayList<String> task_names;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.task_layout, container, false);
         task_list = (ListView) view.findViewById(R.id.task_list);
@@ -73,27 +77,70 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Cus
         tasks.setCustomButtonListner(this);
         task_list.setAdapter(tasks);
 
-        final TasksDatabase database = new TasksDatabase(this.getContext());
         readFromDatabase();
 
         // Set onClick for the add_button
         add_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Task task = new Task();
-                task.name = "Hallo";
-                task.priority = "high";
-                task.date_to = "2015-05-26";
-                database.addNewTask(task);
-                readFromDatabase();
+
+                final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                final View dialog_view = inflater.inflate(R.layout.add_new_task_dialog, null);
+
+                builder.setView(dialog_view)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                                EditText dialog_text_input = (EditText) dialog_view.findViewById(R.id.dialog_task_input);
+                                String task_name = dialog_text_input.getText().toString();
+
+                                RadioGroup dialog_radio_group = (RadioGroup) dialog_view.findViewById(R.id.dialog_priority_radio_group);
+                                RadioButton checkedRadioButton = (RadioButton) dialog_view.findViewById(dialog_radio_group.getCheckedRadioButtonId());
+
+                                EditText dialog_date_input = (EditText) dialog_view.findViewById(R.id.dialog_date_input);
+                                String date_text = dialog_date_input.getText().toString();
+
+                                // Create a new task object
+                                Task task = new Task(task_name, checkedRadioButton.getText().toString(), date_text);
+                                writeToDatabase(task);
+
+                                readFromDatabase();
+                            }
+                        })
+                        .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        });
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
         });
 
         return view;
     }
 
+    public void writeToDatabase(Task task) {
+
+        final TasksDatabase database = new TasksDatabase(this.getContext());
+        SQLiteDatabase task_database = database.getWritableDatabase();
+
+        try {
+            task_database.execSQL("INSERT INTO tasks(name, priority, date_to) VALUES('" +
+                    task.name + "','" + task.priority + "','" + task.date_to + "');");
+        }
+        catch (SQLException ex) {
+           Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
+        task_database.close();
+    }
+
     @Override
-    public void onButtonClickListener(int position, String value, View view) {
+    public void onButtonClickListener(int position, String value, TextView view) {
         final TasksDatabase database = new TasksDatabase(this.getContext());
 
         try {
