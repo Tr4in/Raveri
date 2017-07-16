@@ -1,5 +1,6 @@
 package de.technopaki.aleks.raveri;
 
+import android.widget.Button;
 import android.widget.TextView;
 
 /**
@@ -7,5 +8,6 @@ import android.widget.TextView;
  */
 
 public interface TaskButtonListener {
-    public void onButtonClickListener(int position, String value, TextView view);
+    void onButtonChangeListener(String value);
+    void onButtonDeleteListener(int position, String value);
 }

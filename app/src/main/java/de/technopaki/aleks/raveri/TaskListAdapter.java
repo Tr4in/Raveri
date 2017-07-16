@@ -19,11 +19,12 @@ import java.util.ArrayList;
 public class TaskListAdapter extends ArrayAdapter<String> {
     Context context;
     ArrayList<String> items;
-    TaskButtonListener customListner;
+    TaskButtonListener taskButtonListener;
 
     class ViewHolder {
         TextView text;
-        Button button;
+        Button editButton;
+        Button deleteButton;
     }
 
 
@@ -35,7 +36,7 @@ public class TaskListAdapter extends ArrayAdapter<String> {
 
 
     public void setCustomButtonListner(TaskButtonListener listener) {
-        this.customListner = listener;
+        this.taskButtonListener = listener;
     }
 
     @NonNull
@@ -47,19 +48,28 @@ public class TaskListAdapter extends ArrayAdapter<String> {
             convertView = inflater.inflate(R.layout.task_item, null);
             viewHolder = new ViewHolder();
             viewHolder.text = (TextView) convertView.findViewById(R.id.name_of_task);
-            viewHolder.button = (Button) convertView.findViewById(R.id.deleteButton);
+            viewHolder.editButton = (Button) convertView.findViewById(R.id.editButton);
+            viewHolder.deleteButton = (Button) convertView.findViewById(R.id.deleteButton);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         final String name_of_task = getItem(position);
         viewHolder.text.setText(name_of_task);
-        viewHolder.button.setOnClickListener(new View.OnClickListener() {
+
+        viewHolder.editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                taskButtonListener.onButtonChangeListener(name_of_task);
+            }
+        });
+
+        viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-                if (customListner != null) {
-                    //customListner.onButtonClickListener(position,name_of_task, viewHolder.);
+                if (taskButtonListener != null) {
+                    taskButtonListener.onButtonDeleteListener(position,name_of_task);
                 }
 
             }

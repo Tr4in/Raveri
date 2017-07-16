@@ -76,7 +76,7 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Cu
     void readFromDatabase() {
         final TasksDatabase database = new TasksDatabase(this.getContext());
         task_database = database.getWritableDatabase();
-        Cursor cursor = task_database.rawQuery("SELECT name FROM tasks", null);
+        Cursor cursor = task_database.rawQuery("SELECT name FROM tasks WHERE priority='high'", null);
         questList.clear();
 
         if(cursor != null) {

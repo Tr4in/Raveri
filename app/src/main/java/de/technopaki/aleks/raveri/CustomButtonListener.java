@@ -8,5 +8,5 @@ import android.widget.TextView;
  */
 
 public interface CustomButtonListener {
-    public void onButtonClickListener(int position, String value, TextView view);
+    void onButtonClickListener(int position, String value, TextView view);
 }

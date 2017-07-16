@@ -64,6 +64,7 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Tas
     SQLiteDatabase task_database;
     TaskListAdapter tasks;
     ArrayList<String> task_names;
+    LayoutInflater layoutInflater;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -72,6 +73,7 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Tas
         task_list = (ListView) view.findViewById(R.id.task_list);
         add_button = (Button) view.findViewById(R.id.addButton);
         task_names = new ArrayList<>();
+        layoutInflater = inflater;
 
         tasks = new TaskListAdapter(getContext(),task_names);
         tasks.setCustomButtonListner(this);
@@ -85,7 +87,7 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Tas
             public void onClick(View view) {
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                final View dialog_view = inflater.inflate(R.layout.add_new_task_dialog, null);
+                final View dialog_view = layoutInflater.inflate(R.layout.add_new_task_dialog, null);
 
                 builder.setView(dialog_view)
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -140,12 +142,32 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Tas
     }
 
     @Override
-    public void onButtonClickListener(int position, String value, TextView view) {
+    public void onButtonDeleteListener(int position, String value) {
         final TasksDatabase database = new TasksDatabase(this.getContext());
 
         try {
             task_database = database.getWritableDatabase();
             task_database.execSQL("DELETE FROM tasks WHERE name='" + value + "'");
+            tasks.remove(value);
+            tasks.notifyDataSetChanged();
+
+            task_database.close();
+        }
+        catch(SQLException ex) {
+            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onButtonChangeListener(String value) {
+
+        changeDatasetDialog(value);
+
+        final TasksDatabase database = new TasksDatabase(this.getContext());
+
+        try {
+            task_database = database.getWritableDatabase();
+            task_database.execSQL("UPDATE FROM tasks(name, priority, date_to) WHERE name='" + value + "'");
             tasks.remove(value);
             tasks.notifyDataSetChanged();
 
@@ -173,6 +195,42 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Tas
         }
 
         task_database.close();
+    }
+
+    void changeDatasetDialog(String sqlSelectValue) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        final View dialog_view = layoutInflater.inflate(R.layout.add_new_task_dialog, null);
+
+        builder.setView(dialog_view)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                        EditText dialog_text_input = (EditText) dialog_view.findViewById(R.id.dialog_task_input);
+                        String task_name = dialog_text_input.getText().toString();
+
+                        RadioGroup dialog_radio_group = (RadioGroup) dialog_view.findViewById(R.id.dialog_priority_radio_group);
+                        RadioButton checkedRadioButton = (RadioButton) dialog_view.findViewById(dialog_radio_group.getCheckedRadioButtonId());
+
+                        EditText dialog_date_input = (EditText) dialog_view.findViewById(R.id.dialog_date_input);
+                        String date_text = dialog_date_input.getText().toString();
+
+                        // Create a new task object
+                        Task task = new Task(task_name, checkedRadioButton.getText().toString(), date_text);
+                        writeToDatabase(task);
+
+                        readFromDatabase();
+                    }
+                })
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
 }
