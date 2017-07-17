@@ -21,13 +21,13 @@ import java.util.ArrayList;
 public class QuestListAdapter extends ArrayAdapter<String> {
     Context context;
     ArrayList<String> items;
-    CustomButtonListener customListner;
+    QuestItemListener questItemListener;
 
-    class ViewHolder {
+    private class ViewHolder {
         TextView quest;
         TextView time;
-        Button accept;
-        Button abort;
+        Button finished;
+        Button recordButton;
     }
 
     public QuestListAdapter(Context context, ArrayList<String> items) {
@@ -37,35 +37,47 @@ public class QuestListAdapter extends ArrayAdapter<String> {
     }
 
 
-    public void setCustomButtonListner(CustomButtonListener listener) {
-        this.customListner = listener;
+    public void setQuestItemListener(QuestItemListener listener) {
+        this.questItemListener = listener;
     }
 
     @NonNull
     @Override
     public View getView(final int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         final ViewHolder viewHolder;
+
         if (convertView == null) {
             LayoutInflater inflater = LayoutInflater.from(context);
             convertView = inflater.inflate(R.layout.quest_item, null);
             viewHolder = new ViewHolder();
+
             viewHolder.quest = (TextView) convertView.findViewById(R.id.quest_name);
             viewHolder.time = (TextView) convertView.findViewById(R.id.quest_time);
-            viewHolder.accept = (Button) convertView.findViewById(R.id.questAcceptButton);
-            viewHolder.abort = (Button) convertView.findViewById(R.id.questAbortButton);
+            viewHolder.recordButton = (Button) convertView.findViewById(R.id.quest_record_button);
+            viewHolder.finished = (Button) convertView.findViewById(R.id.quest_finish_button);
+
             convertView.setTag(viewHolder);
-        } else {
+        } else
             viewHolder = (ViewHolder) convertView.getTag();
-        }
+
+
         final String name_of_task = getItem(position);
         viewHolder.quest.setText(name_of_task);
-        viewHolder.accept.setOnClickListener(new View.OnClickListener() {
 
+        viewHolder.recordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (customListner != null) {
-                    customListner.onButtonClickListener(position,name_of_task, viewHolder.time);
+                if(questItemListener != null) {
+                    questItemListener.onButtonRecordClick(viewHolder.quest.getText().toString(), viewHolder.time);
+                }
+            }
+        });
 
+        viewHolder.finished.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (questItemListener != null) {
+                    /*
                     new CountDownTimer(86400000, 1000) {
                         @Override
                         public void onTick(long l) {
@@ -79,20 +91,14 @@ public class QuestListAdapter extends ArrayAdapter<String> {
                             viewHolder.time.setText("nice!");
                         }
                     }.start();
-                }
 
-            }
-        });
+                    */
 
-        viewHolder.abort.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (customListner != null) {
-                    customListner.onButtonClickListener(position,name_of_task, viewHolder.time);
-                    viewHolder.time.setText("0");
+                    questItemListener.onButtonFinishClick(viewHolder.quest.getText().toString());
                 }
             }
         });
+
 
         return convertView;
     }

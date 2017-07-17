@@ -18,18 +18,6 @@
         android:layout_alignBottom="@+id/deleteButton" />
 
     <Button
-        android:id="@+id/editButton"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/deleteButton"
-        android:layout_toStartOf="@+id/deleteButton"
-        android:background="@android:color/holo_orange_light"
-        android:text="@string/editTask"
-        android:textColor="@color/white" />
-
-    <Button
         android:id="@+id/deleteButton"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="40dp"

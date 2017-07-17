@@ -12,45 +12,47 @@
         android:textStyle="bold"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_toStartOf="@+id/quest_time"
+        android:layout_toStartOf="@+id/quest_record_button"
         android:layout_alignBottom="@+id/quest_time"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/quest_time" />
+        android:layout_toLeftOf="@+id/quest_record_button" />
 
     <TextView
         android:id="@+id/quest_time"
-        android:layout_width="50dp"
+        android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textSize="15sp"
         android:textStyle="bold"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/questAcceptButton"
-        android:layout_toStartOf="@+id/questAcceptButton"
-        android:layout_alignBottom="@+id/questAcceptButton" />
+        android:layout_toLeftOf="@+id/quest_finish_button"
+        android:layout_toStartOf="@+id/quest_finish_button"
+        android:layout_alignBottom="@+id/quest_finish_button" />
+
 
     <Button
         style="@style/Widget.AppCompat.Button.Colored"
-        android:id="@+id/questAcceptButton"
+        android:id="@+id/quest_finish_button"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/questAbortButton"
-        android:layout_toStartOf="@+id/questAbortButton"
         android:background="@android:color/holo_green_light"
         android:text="@string/questAccept"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <Button
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:id="@+id/questAbortButton"
+        android:id="@+id/quest_record_button"
         android:layout_width="40dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:background="@color/red"
-        android:text="@string/questAbort"
-        android:textColor="@color/white" />
+        android:layout_toStartOf="@+id/quest_time"
+        android:background="@android:color/holo_blue_bright"
+        android:text="&#9658;"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
 
 </RelativeLayout>

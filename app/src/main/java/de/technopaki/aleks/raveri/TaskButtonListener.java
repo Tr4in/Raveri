@@ -8,6 +8,5 @@ import android.widget.TextView;
  */
 
 public interface TaskButtonListener {
-    void onButtonChangeListener(String value);
     void onButtonDeleteListener(int position, String value);
 }

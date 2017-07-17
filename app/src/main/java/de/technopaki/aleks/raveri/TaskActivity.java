@@ -133,8 +133,7 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Tas
         try {
             task_database.execSQL("INSERT INTO tasks(name, priority, date_to) VALUES('" +
                     task.name + "','" + task.priority + "','" + task.date_to + "');");
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
 
@@ -152,85 +151,36 @@ public class TaskActivity extends android.support.v4.app.Fragment implements Tas
             tasks.notifyDataSetChanged();
 
             task_database.close();
-        }
-        catch(SQLException ex) {
-            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    public void onButtonChangeListener(String value) {
-
-        changeDatasetDialog(value);
-
-        final TasksDatabase database = new TasksDatabase(this.getContext());
-
-        try {
-            task_database = database.getWritableDatabase();
-            task_database.execSQL("UPDATE FROM tasks(name, priority, date_to) WHERE name='" + value + "'");
-            tasks.remove(value);
-            tasks.notifyDataSetChanged();
-
-            task_database.close();
-        }
-        catch(SQLException ex) {
+        } catch(SQLException ex) {
             Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
     void readFromDatabase() {
         final TasksDatabase database = new TasksDatabase(this.getContext());
-        task_database = database.getWritableDatabase();
-        Cursor cursor = task_database.rawQuery("SELECT name FROM tasks", null);
-        task_names.clear();
 
-        if(cursor != null) {
-            if(cursor.moveToFirst()) {
-                do {
-                    String name = cursor.getString(cursor.getColumnIndex("name"));
-                    task_names.add(name);
-                    //tasks.notifyDataSetChanged();
-                } while(cursor.moveToNext());
+        try {
+
+            task_database = database.getWritableDatabase();
+            Cursor cursor = task_database.rawQuery("SELECT name FROM tasks", null);
+            task_names.clear();
+
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        String name = cursor.getString(cursor.getColumnIndex("name"));
+                        task_names.add(name);
+                    } while (cursor.moveToNext());
+                }
             }
+
+            cursor.close();
+            task_database.close();
+
+        } catch (SQLException ex) {
+            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
-
-        task_database.close();
     }
 
-    void changeDatasetDialog(String sqlSelectValue) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        final View dialog_view = layoutInflater.inflate(R.layout.add_new_task_dialog, null);
-
-        builder.setView(dialog_view)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                        EditText dialog_text_input = (EditText) dialog_view.findViewById(R.id.dialog_task_input);
-                        String task_name = dialog_text_input.getText().toString();
-
-                        RadioGroup dialog_radio_group = (RadioGroup) dialog_view.findViewById(R.id.dialog_priority_radio_group);
-                        RadioButton checkedRadioButton = (RadioButton) dialog_view.findViewById(dialog_radio_group.getCheckedRadioButtonId());
-
-                        EditText dialog_date_input = (EditText) dialog_view.findViewById(R.id.dialog_date_input);
-                        String date_text = dialog_date_input.getText().toString();
-
-                        // Create a new task object
-                        Task task = new Task(task_name, checkedRadioButton.getText().toString(), date_text);
-                        writeToDatabase(task);
-
-                        readFromDatabase();
-                    }
-                })
-                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                });
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
 
 }

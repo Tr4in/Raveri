@@ -23,7 +23,6 @@ public class TaskListAdapter extends ArrayAdapter<String> {
 
     class ViewHolder {
         TextView text;
-        Button editButton;
         Button deleteButton;
     }
 
@@ -48,7 +47,6 @@ public class TaskListAdapter extends ArrayAdapter<String> {
             convertView = inflater.inflate(R.layout.task_item, null);
             viewHolder = new ViewHolder();
             viewHolder.text = (TextView) convertView.findViewById(R.id.name_of_task);
-            viewHolder.editButton = (Button) convertView.findViewById(R.id.editButton);
             viewHolder.deleteButton = (Button) convertView.findViewById(R.id.deleteButton);
             convertView.setTag(viewHolder);
         } else {
@@ -56,13 +54,6 @@ public class TaskListAdapter extends ArrayAdapter<String> {
         }
         final String name_of_task = getItem(position);
         viewHolder.text.setText(name_of_task);
-
-        viewHolder.editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                taskButtonListener.onButtonChangeListener(name_of_task);
-            }
-        });
 
         viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
 
