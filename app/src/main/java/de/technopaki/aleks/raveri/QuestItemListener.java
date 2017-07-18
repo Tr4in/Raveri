@@ -1,5 +1,6 @@
 package de.technopaki.aleks.raveri;
 
+import android.widget.Button;
 import android.widget.TextView;
 
 /**
@@ -8,5 +9,5 @@ import android.widget.TextView;
 
 interface QuestItemListener {
     void onButtonFinishClick(String value);
-    void onButtonRecordClick(String value, TextView time_output);
+    void onButtonRecordClick(String value, TextView time_output, Button recordButton);
 }

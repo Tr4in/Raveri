@@ -1,31 +1,24 @@
 package de.technopaki.aleks.raveri;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.common.io.Files;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 
@@ -45,6 +38,8 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
     int currentLevel = 1;
     float maxExp = 0;
     float currentExp = 0;
+    String myPref = "LEVEL_INFORMATION";
+    CountDownTimer timer;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -60,7 +55,7 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
         task_list.setAdapter(questAdapter);
         questAdapter.setQuestItemListener(this);
 
-        loadLevelInformationFromFile();
+        loadLevelInformationFromPref();
         level_textview.setText("Level " + currentLevel);
 
         readFromDatabase();
@@ -81,49 +76,31 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
         return view;
     }
 
-    public void loadLevelInformationFromFile() {
-        // Open file
-        InputStream txtFileInputStream = getResources().openRawResource(R.raw.level_information);
+    public void loadLevelInformationFromPref() {
+        SharedPreferences preferences = getContext().getSharedPreferences(myPref, Context.MODE_PRIVATE);
 
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(txtFileInputStream));
+        currentLevel = preferences.getInt("level", 0);
+        currentExp = preferences.getFloat("currentExp", 0);
+        maxExp = preferences.getFloat("maxExp", 0);
 
-            String line = bufferedReader.readLine();
-            String[] level_information = line.split(";");
-
-            currentLevel = Integer.parseInt(level_information[0]);
-            currentExp = Float.parseFloat(level_information[1]);
-            maxExp = Float.parseFloat(level_information[2]);
-
-            int progress = (int)((currentExp / maxExp) * 100);
-            levelProgress.setProgress(progress);
-
-        } catch(IOException ex) {
-            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
-        }
+        int progress = (int)((currentExp / maxExp) * 100);
+        levelProgress.setProgress(progress);
     }
 
-    public void writeLevelInformationToFile() {
+    public void writeLevelInformationToPref() {
 
-        try {
+        SharedPreferences preferences = getContext().getSharedPreferences(myPref, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
 
-            String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Raveri";
-            File level_information = new File(getContext().getExternalFilesDir(null) + File.separator + "level_information.txt");
+        editor.putInt("level", currentLevel);
+        editor.putFloat("currentExp", currentExp);
+        editor.putFloat("maxExp", maxExp);
 
-            String information = currentLevel + ";" + currentExp + ";" + maxExp + ";";
-
-            Files.write(information.getBytes(), level_information);
-
-        } catch(FileNotFoundException ex) {
-            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
-        } catch (IOException ex) {
-            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
-        }
-
+        editor.apply();
     }
 
     @Override
-    public void onButtonRecordClick(String value, final TextView time_output) {
+    public void onButtonRecordClick(String value, final TextView time_output, Button recordButton) {
         final TasksDatabase database = new TasksDatabase(this.getContext());
         int timerCount = 1;
 
@@ -141,12 +118,15 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
             Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
 
-        // Start a countdown here
+        // Disable button - no return :)
+        recordButton.setEnabled(false);
+        recordButton.setBackgroundColor(getResources().getColor(R.color.colorDark));
 
-        new CountDownTimer(timerCount * 1000, 1000) {
+        // Start a countdown here
+        timer = new CountDownTimer(timerCount * 3600 * 1000, 1000) {
             @Override
             public void onTick(long l) {
-                time_output.setText("" + l);
+                time_output.setText("" + l / 1000);
             }
 
             @Override
@@ -169,6 +149,10 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
 
     @Override
     public void onButtonFinishClick(String value) {
+
+        if(timer != null)
+            timer.cancel();
+
         final TasksDatabase database = new TasksDatabase(this.getContext());
 
         try {
@@ -204,7 +188,8 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
 
                 int progress = (int)((currentExp / maxExp) * 100);
                 levelProgress.setProgress(progress);
-                writeLevelInformationToFile();
+                writeLevelInformationToPref();
+
             }
 
             task_database.close();
@@ -212,6 +197,7 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
         } catch(SQLException ex) {
             Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
+
     }
 
     void readFromDatabase() {

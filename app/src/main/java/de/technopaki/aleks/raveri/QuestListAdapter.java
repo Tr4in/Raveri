@@ -68,7 +68,7 @@ public class QuestListAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View view) {
                 if(questItemListener != null) {
-                    questItemListener.onButtonRecordClick(viewHolder.quest.getText().toString(), viewHolder.time);
+                    questItemListener.onButtonRecordClick(viewHolder.quest.getText().toString(), viewHolder.time, viewHolder.recordButton);
                 }
             }
         });
