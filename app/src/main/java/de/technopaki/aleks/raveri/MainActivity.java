@@ -1,5 +1,7 @@
 package de.technopaki.aleks.raveri;
 
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -35,4 +37,11 @@ public class MainActivity extends FragmentActivity {
 
     }
 
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Exit?")
+                .setMessage("You are the best!")
+                .create().show();
+    }
 }

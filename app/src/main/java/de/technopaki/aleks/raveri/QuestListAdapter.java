@@ -23,12 +23,14 @@ public class QuestListAdapter extends ArrayAdapter<String> {
     ArrayList<String> items;
     QuestItemListener questItemListener;
 
-    private class ViewHolder {
+    static class ViewHolder {
         TextView quest;
         TextView time;
         Button finished;
         Button recordButton;
+        CountDownTimer countDownTimer;
     }
+
 
     public QuestListAdapter(Context context, ArrayList<String> items) {
         super(context, R.layout.task_item, items);
@@ -55,6 +57,7 @@ public class QuestListAdapter extends ArrayAdapter<String> {
             viewHolder.time = (TextView) convertView.findViewById(R.id.quest_time);
             viewHolder.recordButton = (Button) convertView.findViewById(R.id.quest_record_button);
             viewHolder.finished = (Button) convertView.findViewById(R.id.quest_finish_button);
+            viewHolder.countDownTimer = null;
 
             convertView.setTag(viewHolder);
         } else
@@ -68,7 +71,7 @@ public class QuestListAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View view) {
                 if(questItemListener != null) {
-                    questItemListener.onButtonRecordClick(viewHolder.quest.getText().toString(), viewHolder.time, viewHolder.recordButton);
+                    questItemListener.onButtonRecordClick(position,viewHolder.quest.getText().toString(), viewHolder.time, viewHolder.recordButton, viewHolder.countDownTimer,  viewHolder.finished);
                 }
             }
         });
@@ -77,24 +80,7 @@ public class QuestListAdapter extends ArrayAdapter<String> {
             @Override
             public void onClick(View view) {
                 if (questItemListener != null) {
-                    /*
-                    new CountDownTimer(86400000, 1000) {
-                        @Override
-                        public void onTick(long l) {
-                            int hours = (int)((l/3600) * 0.001);
-                            int minutes = (int)(((l / 24) / 60) / 1000);
-                            viewHolder.time.setText(hours + ":" + minutes);
-                        }
-
-                        @Override
-                        public void onFinish() {
-                            viewHolder.time.setText("nice!");
-                        }
-                    }.start();
-
-                    */
-
-                    questItemListener.onButtonFinishClick(viewHolder.quest.getText().toString());
+                    questItemListener.onButtonFinishClick(position, viewHolder.quest.getText().toString());
                 }
             }
         });

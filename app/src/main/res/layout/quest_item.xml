@@ -46,6 +46,7 @@
         android:id="@+id/quest_record_button"
         android:layout_width="40dp"
         android:layout_height="wrap_content"
+        android:tag="0"
         android:layout_alignParentTop="true"
         android:layout_toStartOf="@+id/quest_time"
         android:background="@android:color/holo_blue_bright"

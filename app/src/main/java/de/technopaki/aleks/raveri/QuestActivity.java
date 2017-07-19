@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.support.annotation.Nullable;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +22,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 /**
@@ -36,10 +40,10 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
     SQLiteDatabase task_database;
     ArrayList<String> questList;
     int currentLevel = 1;
-    float maxExp = 0;
-    float currentExp = 0;
+    float maxExp = 50f;
+    float currentExp = 0f;
     String myPref = "LEVEL_INFORMATION";
-    CountDownTimer timer;
+    ArrayMap<Integer, CountDownTimer> timers;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -50,6 +54,7 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
         refreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_layout);
         levelProgress = (ProgressBar) view.findViewById(R.id.progressBar);
         questList = new ArrayList<>();
+        timers = new ArrayMap<>();
 
         questAdapter = new QuestListAdapter(view.getContext(), questList);
         task_list.setAdapter(questAdapter);
@@ -100,7 +105,7 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
     }
 
     @Override
-    public void onButtonRecordClick(String value, final TextView time_output, Button recordButton) {
+    public void onButtonRecordClick(final int position, String value, final TextView time_output, final Button recordButton, CountDownTimer countDownTimer, final Button finish_button) {
         final TasksDatabase database = new TasksDatabase(this.getContext());
         int timerCount = 1;
 
@@ -112,46 +117,58 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
             if (cursor.moveToFirst()) {
                 String time = cursor.getString(cursor.getColumnIndex("date_to"));
                 timerCount = Integer.parseInt(time);
-
             }
+
+            task_database.close();
+
         } catch(SQLException ex) {
             Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
         }
 
-        // Disable button - no return :)
-        recordButton.setEnabled(false);
-        recordButton.setBackgroundColor(getResources().getColor(R.color.colorDark));
+            if(timers.get(position) == null) {
+                // Start a countdown here
+                countDownTimer = new CountDownTimer(timerCount * 3600 * 1000, 1000) {
+                    @Override
+                    public void onTick(long l) {
+                        time_output.setText("" + l / 1000);
+                    }
 
-        // Start a countdown here
-        timer = new CountDownTimer(timerCount * 3600 * 1000, 1000) {
-            @Override
-            public void onTick(long l) {
-                time_output.setText("" + l / 1000);
+                    @Override
+                    public void onFinish() {
+                        currentExp = -maxExp * 0.5f;
+
+                        if (currentExp < 0) {
+                            if (currentLevel > 0)
+                                --currentLevel;
+
+                            currentExp = 0;
+                        }
+
+                        timers.removeAt(position);
+                        levelProgress.setProgress((int) currentExp);
+                        level_textview.setText("Level " + currentLevel);
+                        recordButton.setBackgroundColor(getResources().getColor(R.color.red));
+                        time_output.setText("FAILED");
+                    }
+                };
+
+                countDownTimer.start();
+                timers.put(position, countDownTimer);
             }
 
-            @Override
-            public void onFinish() {
-                currentExp =- maxExp * 0.5f;
-
-                if(currentExp < 0) {
-                    if(currentLevel > 0)
-                        --currentLevel;
-
-                    currentExp = 0;
-                }
-
-                levelProgress.setProgress((int)currentExp);
-                level_textview.setText("Level " + currentLevel);
-                time_output.setText("FAILED");
-            }
-        }.start();
     }
 
     @Override
-    public void onButtonFinishClick(String value) {
+    public void onButtonFinishClick(int position, String value) {
+        // Stop the countdowntimer first
+        CountDownTimer countDownTimer = timers.get(position);
 
-        if(timer != null)
-            timer.cancel();
+        if(countDownTimer == null)
+            return;
+
+        countDownTimer.cancel();
+        timers.removeAt(position);
+
 
         final TasksDatabase database = new TasksDatabase(this.getContext());
 
@@ -190,6 +207,8 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
                 levelProgress.setProgress(progress);
                 writeLevelInformationToPref();
 
+                questAdapter.remove(value);
+                questAdapter.notifyDataSetChanged();
             }
 
             task_database.close();
@@ -204,7 +223,7 @@ public class QuestActivity extends android.support.v4.app.Fragment implements Qu
         final TasksDatabase database = new TasksDatabase(this.getContext());
         task_database = database.getWritableDatabase();
         Cursor cursor = task_database.rawQuery("SELECT name FROM tasks;", null);
-        questList.clear();
+        questAdapter.clear();
 
         if(cursor != null) {
             if(cursor.moveToFirst()) {
